@@ -20,7 +20,7 @@ class BoundedParetoSet : public ParetoSet {
     // string nomeglobalf;
 	
 	public:
-	/* Complexidade: O(n) */
+	/* Complexity: O(n) */
 	BoundedParetoSet () {
 	}
 	~BoundedParetoSet () {

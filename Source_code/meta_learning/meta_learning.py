@@ -525,7 +525,7 @@ def run_pipeline(folder_path, experiment_label, base_output_path, is_maximizatio
 # EXECUTION
 # ==============================================================================
 if __name__ == "__main__":
-        # Caminhos relativos a partir do diretório deste script
+    # Relative paths from this script's directory
     script_dir = os.path.dirname(os.path.abspath(__file__))
     data_folder_path = os.path.join(script_dir, '..', '..', 'Results', 'meta_features_with_indicators')
     base_output_path_for_experiments = os.path.join(script_dir, '..', '..', 'Results', 'meta_learning_results')
