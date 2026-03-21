@@ -5,12 +5,12 @@
 #include <list>
 #include <chrono>
 
-// ==================== ESTRUTURAS DE DADOS ====================
+// ==================== data structures ====================
 struct Passenger
 {
     int wk; // ||maximum cost willing to pay
-    int ok; // origem
-    int dk; // destino
+    int ok; // origin
+    int dk; // destination
     int tk; // ||maximum time willing to accept
 };
 

@@ -54,4 +54,4 @@ const ws = xlsx.utils.json_to_sheet(resultado);
 xlsx.utils.book_append_sheet(wb, ws, "Tempos Médios");
 xlsx.writeFile(wb, "tempos_medios.xlsx");
 
-console.log("Arquivo 'tempos_medios.xlsx' gerado com sucesso.");
+console.log("Archive 'tempos_medios.xlsx' generated.");
