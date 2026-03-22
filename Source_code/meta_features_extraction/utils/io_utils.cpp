@@ -277,7 +277,6 @@ void create_test_archives(
     string endereço_do_arquivo = folder_name+ "/"+algorithm_name+"/" + instance_address +"/"+ "test_" + to_string(current_test) +"/paretogeneration_" + to_string(generation) + ".txt";
     string endereço_do_arquivo_completo = folder_name+ "/"+algorithm_name+"/" + instance_address +"/"+ "test_" + to_string(current_test) +"/paretogeneration_" + to_string(generation) + "_complete.txt";
     string endereço_dados = folder_name+ "/"+algorithm_name+"/" + instance_address +"/"+ "test_" + to_string(current_test) + "/data";
-    //cout<<"file path: "<<endereço_do_arquivo<<endl;
     ofstream arquivo(endereço_do_arquivo);
     ofstream arquivo_completo(endereço_do_arquivo_completo);
     ofstream arquivo_dados(endereço_dados);
