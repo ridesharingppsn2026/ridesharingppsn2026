@@ -91,7 +91,7 @@
             solutions.push_back(y);
             updateIdealNadir(y);
 
-            // 2. Verifica se precisa dividir
+            // 2. Check whether splitting is needed
             if (solutions.size() > max_solutions) {
                 split(max_children, max_solutions);
             }//didnt do yet the case to max_children
@@ -113,7 +113,7 @@
         // Property 1: ||y is covered by nadir_point
         if (nadir_point.cost <= y.cost && nadir_point.time <= y.time &&
             nadir_point.total_bonus >= y.total_bonus) {
-            return false; // Rejeita y
+            return false; // Reject y
         }
 
         // Property 2: ||y covers ideal_point => remove the node and its subtree
@@ -124,7 +124,7 @@
             return true;
         }
     
-        // terceiro caso
+        // third case
         else if ((ideal_point.cost <= y.cost && 
             ideal_point.time <= y.time &&
             ideal_point.total_bonus >= y.total_bonus) or 
@@ -139,7 +139,7 @@
                         return false; // ||y is dominated by or equal to an existing point
                     } else if (x_dominates_y(y, *it)) {
                         current_size--;
-                        it = solutions.erase(it); // remove ponto dominado
+                        it = solutions.erase(it); // remove dominated point
                     } else {
                         ++it;
                     }
@@ -148,7 +148,7 @@
                     should_delete = true;
                 }
             } else {
-                // Recursivamente atualiza os filhos
+                // Recursively update children
                 if(children.empty()){
                     should_delete = true;
                     return true;
@@ -177,20 +177,20 @@
                 if (children.size() == 1) {
                     NDNode* only = children.front();
                     
-                    // Mover os dados importantes manualmente
+                    // Move important data manually
                     is_leaf = only->is_leaf;
                     solutions = only->solutions;
                     ideal_point = only->ideal_point;
                     nadir_point = only->nadir_point;
                     
-                    // Primeiro limpa qualquer children atual
+                    // First clear any current children
                     for (auto* child : children) {
                         if (child != only) delete child;
                     }
                     
                     children = only->children; // ||Move children (without creating invalid pointers)
                     for (auto* child : children) {
-                        if (child) child->parent = this; // Atualiza parent!
+                        if (child) child->parent = this; // Update parent!
                     }
                     only->children.clear(); // ||Clear node children
                     delete only;
@@ -259,7 +259,7 @@
         return best_z;
     }
 
-    // Encontra o ponto em solutions mais distante dos filhos existentes
+    // Find the point in solutions farthest from existing children
     Solution NDNode::findPointFarthestFromChildren() {
         Solution best_z;
         double max_min_distance = -1.0;
@@ -284,7 +284,7 @@
         return best_z;
     }
 
-    // Cria um novo filho com um ponto e atualiza ideal/nadir
+    // Create a new child with one point and update ideal/nadir
     void NDNode::createChildWithPoint(
         const Solution& z, 
         int max_solutions
@@ -295,7 +295,7 @@
         child->updateIdealNadir(z);
         children.push_back(child);
     
-        // Remove z de solutions
+        // Remove z from solutions
         solutions.erase(
             std::remove_if(solutions.begin(), solutions.end(),
                 [&z](const Solution& s) {

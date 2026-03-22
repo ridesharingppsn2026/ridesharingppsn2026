@@ -19,16 +19,16 @@ using namespace std;
 // ||Constant for floating-point comparisons
 const double EPS = 1e-9;
 
-// ==================== ESTRUTURAS DE DADOS ====================
+// ==================== DATA STRUCTURES ====================
 struct InputData
 {
     int n, l, vehicle_capacity;
-    vector<vector<int>> c, y; // matrizes de custo e tempo
+    vector<vector<int>> c, y; // cost and time matrices
     vector<int> b, g;         // ||bonus and collection time
     vector<Passenger> passengers;
 };
 
-// ==== VAR GLOBAIS PARA IBEA ====
+// ==== GLOBAL VARS FOR IBEA ====
 struct Range
 {
     double min, max;
@@ -37,7 +37,7 @@ static Range boundsArr[3];
 
 using NormSol = std::array<double,3>; 
 
-// ==================== LEITURA DE ARQUIVO ====================
+// ==================== FILE READING ====================
 InputData readInput(const string &filename)
 {
     ifstream file(filename);
@@ -150,7 +150,7 @@ double calculate_passenger_cost(int origem_index,
     double cost = 0.0;
     int m = solution.route.size();
 
-    // caso destino seja a cidade inicial (0)
+    // if destination is the starting city (0)
     if (destiny_index == 0) {
         cost += instance.c[solution.route[m-1]][solution.route[0]] / double(1 + in_car[m-1]);
         destiny_index = m-1;
@@ -171,7 +171,7 @@ double calculate_passenger_time(int origem_index,
     double time = 0.0;
     int m = solution.route.size();
 
-    // caso destino seja a cidade inicial (0)
+    // if destination is the starting city (0)
     if (destiny_index == 0) {
         time += instance.y[solution.route[m-1]][solution.route[0]];
         destiny_index = m-1;
@@ -191,7 +191,7 @@ double calculate_passenger_time(int origem_index,
     return time;
 }
 
-// ==================== EMBARQUE DE PASSAGEIROS ====================
+// ==================== PASSENGER BOARDING ====================
 void able_passengers(const InputData &d, Solution &sol)
 {
     vector<bool> able(d.l, false);
@@ -199,7 +199,7 @@ void able_passengers(const InputData &d, Solution &sol)
     vector<pair<double, int>> order;
     for (int i = 0; i < d.l; ++i)
         order.emplace_back(d.passengers[i].wk, i);
-    sort(order.begin(), order.end()); // do pobre ao rico
+    sort(order.begin(), order.end()); // from poorest to richest
     for (int idx = (int)order.size() - 1; idx >= 0; --idx)
     {
         int pid = order[idx].second;
@@ -261,7 +261,7 @@ double recalc_cost(const InputData &d, const Solution &sol) {
         int u = sol.route[i];
         int v = sol.route[(i+1)%m];
         double step = d.c[u][v];
-        // conta passageiros a bordo neste trecho
+        // count passengers onboard in this segment
         for (int p = 0; p < d.l; ++p) {
             if (sol.passengers_riding[p]) {
                 if (d.passengers[p].ok == u)   ++people;
@@ -294,14 +294,14 @@ double recalc_bonus(const InputData &d, const Solution &sol) {
     return B;
 }
 
-// verifica se os passageiros em solution.passengers_riding são válidos
+// check whether passengers in solution.passengers_riding are valid
 bool recalc_passengers_ok(const InputData &instance,
 const Solution &solution)
 {
 int m = solution.route.size();
-// começa com 1 pessoa (o motorista) em cada trecho
+// start with 1 person (the driver) in each segment
 vector<int> in_car(m, 1);
-// ordena passageiros de pior para melhor pagador
+// sort passengers from worst to best payer
 vector<pair<double,int>> by_cost;
 for (int i = 0; i < instance.l; ++i) {
 if (solution.passengers_riding[i]) {
@@ -310,21 +310,21 @@ by_cost.emplace_back(instance.passengers[i].wk, i);
 }
 if (by_cost.empty()) return true;
 
-// do pobre ao rico
+// from poorest to richest
 sort(by_cost.begin(), by_cost.end());
 
-// testa cada passageiro de rico a pobre
+// test each passenger from richest to poorest
 for (int idx = (int)by_cost.size()-1; idx >= 0; --idx) {
 int pid = by_cost[idx].second;
 bool subiu = false, desceu = false;
 int oi = -1, di = -1;
 bool apto = true;
 
-// percorre rota tentando embarcar e desembarcar
+// traverse route trying to board and drop off
 for (int city = 0; city < m; ++city) {
 int v = solution.route[city];
 if (!subiu && v == instance.passengers[pid].ok) {
-// embarque
+// boarding
 if (in_car[city] < instance.vehicle_capacity) {
 subiu = true;
 oi = city;
@@ -333,7 +333,7 @@ return false;
 }
 }
 else if (subiu && v == instance.passengers[pid].dk) {
-// desembarque
+// drop-off
 if (city == 0) { 
 desceu = true;
 di = city;
@@ -344,29 +344,29 @@ di = city;
 break;
 }
 else if (subiu && in_car[city] >= instance.vehicle_capacity) {
-// carro lotado no meio do trajeto
+// car full in the middle of the trip
 return false;
 }
 }
 
-// se origem e destino foram encontrados
+// if origin and destination were found
 if (!subiu || !desceu) continue;
 
-// special: destino volta à 0
+// special: destination loops back to 0
 if (solution.route[0] == instance.passengers[pid].dk &&
 in_car[m-1] >= instance.vehicle_capacity)
 return false;
 
-// calcula custo e tempo do passageiro
+// compute passenger cost and time
 double c = calculate_passenger_cost(oi, di, in_car, solution, instance);
 double t = calculate_passenger_time(oi, di, solution, instance);
 
-// verifica se passageiro pode pagar
+// check whether passenger can pay
 if (c > instance.passengers[pid].wk ||
 t > instance.passengers[pid].tk)
 return false;
 
-// marca ocupação do carro nos trechos
+// mark car occupancy across segments
 if (di == 0) {
 in_car[m-1]++;
 di = m-1;
@@ -399,7 +399,7 @@ void print_solution(const Solution &sol) {
 bool solution_validity(const InputData &d, const Solution &sol) {
     bool ok = true;
 
-    // 1) rota mínima e origem = 0
+    // 1) minimum route and origin = 0
     if (sol.route.size() < 2) { 
         cout<<"INVÁLIDA: rota menor que 2\n"; ok = false; 
     }
@@ -407,12 +407,12 @@ bool solution_validity(const InputData &d, const Solution &sol) {
         cout<<"INVÁLIDA: origem != 0\n"; ok = false;
     }
 
-    // 2) objetivos não nulos
+    // 2) non-zero objectives
     if (sol.cost < EPS || sol.time < EPS) {
         cout<<"INVÁLIDA: custo ou tempo zero\n"; ok = false;
     }
 
-    // 3) bate com recalculado?
+    // 3) matches recomputed values?
     double cost2  = recalc_cost(d, sol);
     double time2  = recalc_time(d, sol);
     double bonus2 = recalc_bonus(d, sol);
@@ -430,14 +430,14 @@ bool solution_validity(const InputData &d, const Solution &sol) {
         ok = false;
     }
 
-    // 4) passageiros
+    // 4) passengers
     if (!recalc_passengers_ok(d, sol)) {
         cout<<"INVÁLIDA: passageiros violam restrições\n";
         ok = false;
     }
 
     if (!ok) {
-        // imprime rota inteira para DEBUG
+        // print full route for DEBUG
         print_solution(sol);
     }
     return ok;
@@ -446,7 +446,7 @@ bool solution_validity(const InputData &d, const Solution &sol) {
 // ==================== ||OBJECTIVE UPDATE ====================
 void update_objectives(const InputData &d, Solution &sol)
 {
-    // Calcular tempo
+    // Compute time
     sol.time = 0;
     for (int city = 0; city < sol.route.size(); city++)
     {
@@ -467,7 +467,7 @@ void update_objectives(const InputData &d, Solution &sol)
         }
     }
 
-    // Calcular custo
+    // Compute cost
     sol.cost = 0;
     int people_in_car = 1;
     for (int city = 0; city < sol.route.size(); city++)
@@ -522,7 +522,7 @@ void update_objectives(const InputData &d, Solution &sol)
 Solution get_random_solution(const InputData &data)
 {
     Solution sol;
-    // escolhe número de cidades >=2
+    // choose number of cities >= 2
     int number_of_cities = 0;
     while (number_of_cities < 2)
     {
@@ -570,7 +570,7 @@ vector<Solution> get_random_population(const InputData &data, BoundedParetoSet *
         if(solution_validity(data, sol))
         {
             pop.push_back(sol);
-            EP->adicionarSol(&sol);  // Adiciona ao EP se for não dominada
+            EP->adicionarSol(&sol);  // Add to EP if non-dominated
         }
     }
     return pop;
@@ -847,7 +847,7 @@ int random_chance() {
 }
 
 
-// gera exatamente |parents| filhos aplicando crossover e depois possivelmente mutação
+// generate exactly |parents| offspring by applying crossover and then optional mutation
 vector<Solution> generateOffspring(
     const InputData &d,
     const vector<Solution> &parents,
@@ -859,7 +859,7 @@ vector<Solution> generateOffspring(
 
     for (size_t i = 0; i < parents.size(); ++i) {
         Solution child;
-        // 2.1) Crossover X geração aleatória pura
+        // 2.1) Crossover vs pure random generation
         if (random_chance() < crossover_chance) {
             int p1 = rand() % parents.size();
             int p2 = rand() % parents.size();
@@ -869,7 +869,7 @@ vector<Solution> generateOffspring(
             child = get_random_solution(d);
         }
 
-        // reembarque e objetivos
+        // re-board passengers and update objectives
         able_passengers(d, child);
         update_objectives(d, child);
 
@@ -981,7 +981,7 @@ void save_data_routine(Generations& generations, BoundedParetoSet *EP, std::chro
     // ||Increment multiples counter
     biggest_multiple++;
     
-    // Debug para mostrar quando salva
+    // Debug to show when it saves
     cout << "Salvando geração " << biggest_multiple << " em " << valuations << " avaliações" << endl;
 }
 
@@ -1070,14 +1070,14 @@ int main(int argc, char* argv[]) {
     srand(seed);
 
     // ||mIBEA parameters according to the paper
-    const int POP_SIZE   = 300;      // α = tamanho da população
+    const int POP_SIZE   = 300;      // alpha = population size
     const int MAX_EVAL   = 80000;    // ||maximum number of evaluations
-    const double KAPPA   = 0.0477;     // κ, fator de escala
-    const double RHO     = 0.1;      // ρ, define ponto de referência para Hypervolume
-    const int TOURNAM    = 2;        // dimensão do torneio para seleção.
+    const double KAPPA   = 0.0477;     // kappa, scaling factor
+    const double RHO     = 0.1;      // rho, defines Hypervolume reference point
+    const int TOURNAM    = 2;        // tournament size for selection
 
     const int CROSSOVER_RATE = 81; //  93% de chance de aplicar crossover
-    const int MUTATION_RATE  = 42; // 56% de chance de aplicar mutação
+    const int MUTATION_RATE  = 42; // 56% chance to apply mutation
 
     // ||Input and output paths
     string path_in  = argv[1];
@@ -1130,10 +1130,10 @@ int main(int argc, char* argv[]) {
     // Inicializa o EP (Elite Population)
     BoundedParetoSet *EP = new BoundedParetoSet();
 
-    // >> Passo 1: ||Instance reading
+    // >> Step 1: ||Instance reading
     InputData data = readInput(path_in);
 
-    // Realizar execuções independentes apenas para índices faltantes
+    // Run independent executions only for missing indices
     const int NUM_EXECUTIONS = 20;
     for (int exec = 0; exec < NUM_EXECUTIONS; exec++) {
         if (exec_exists[exec]) continue; // ||Skip already existing runs
@@ -1154,43 +1154,43 @@ int main(int argc, char* argv[]) {
         Generations saved_generations;
         int biggest_multiple = 0;
 
-        // Reinicializa variáveis de tempo
+        // Reinitialize time variables
         std::chrono::duration<double> tempoTotal = std::chrono::duration<double>::zero();
         auto start_time = std::chrono::high_resolution_clock::now();
 
-        // >> Passo 2: ||Population initialization
+        // >> Step 2: ||Population initialization
         vector<Solution> population = get_random_population(data, EP, POP_SIZE);
         int eval = population.size();  // ||Evaluation counter
 
-        // Salva estado inicial
+        // Save initial state
         save_data_routine(saved_generations, EP, start_time, biggest_multiple, eval, tempoTotal);
 
-        // >> Loop principal do mIBEA
+        // >> Main mIBEA loop
         while (eval < MAX_EVAL) {
-            // **Passo 3**: Filtra população para não-dominados
+            // **Step 3**: Filter population to non-dominated solutions
             population = getNonDominated(population);
 
-            // **Passo 4**: Normaliza cada solução
+            // **Step 4**: Normalize each solution
             auto normPop = normalizePopulation(population, RHO);
 
-            // **Passo 5**: Calcula fitness
+            // **Step 5**: Compute fitness
             auto fitnessValues = computeFitness(normPop, KAPPA);
             for (size_t i = 0; i < population.size(); ++i)
                 population[i].fitness = fitnessValues[i];
 
-            // **Passo 6**: ||Environmental selection
+            // **Step 6**: ||Environmental selection
             environmentalSelection(population, fitnessValues, POP_SIZE);
 
-            // **Passo 7**: ||Binary tournament for reproduction pool
+            // **Step 7**: ||Binary tournament for reproduction pool
             vector<Solution> matingPool;
             matingPool.reserve(POP_SIZE);
             for (int i = 0; i < POP_SIZE; ++i)
                 matingPool.push_back(population[tournamentSelect(population, TOURNAM)]);
 
-            // **Passo 8**: Gera offspring
+            // **Step 8**: Generate offspring
             auto offspring = generateOffspring(data, matingPool, CROSSOVER_RATE, MUTATION_RATE);
             
-            // **Passo 9**: ||Update population and EP
+            // **Step 9**: ||Update population and EP
             for (auto &child : offspring) {
                 if (solution_validity(data, child)) {
                     population.push_back(child);
@@ -1200,7 +1200,7 @@ int main(int argc, char* argv[]) {
             
             eval += offspring.size();
 
-            // Verifica se deve salvar o estado atual (a cada 10000 avaliações)
+            // Check whether the current state should be saved (every 10000 evaluations)
             // ||Compute next save checkpoint
             int next_checkpoint = (biggest_multiple + 1) * 10000;
             
@@ -1211,23 +1211,23 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        // Garantir que temos exatamente 9 arquivos (0-8)
+        // Ensure we have exactly 9 files (0-8)
         cout << "Verificando número de gerações salvas: " << saved_generations.generations.size() << endl;
         
-        // Se temos menos de 9 gerações, forçamos o salvamento das que faltam
+        // If we have fewer than 9 generations, force-save the missing ones
         while (saved_generations.generations.size() < 9) {
             cout << "Adicionando geração " << biggest_multiple + 1 << " para completar 9 arquivos" << endl;
             save_data_routine(saved_generations, EP, start_time, biggest_multiple, MAX_EVAL, tempoTotal);
         }
         
-        // Se temos mais de 9, removemos as excedentes (improvável, mas por segurança)
+        // If we have more than 9, remove extras (unlikely, but for safety)
         while (saved_generations.generations.size() > 9) {
             cout << "Removendo geração excedente" << endl;
             saved_generations.generations.pop_back();
             saved_generations.durations.pop_back();
         }
 
-        // Cria arquivos para esta execução
+        // Create files for this execution
         for(int generation = 0; generation < saved_generations.generations.size(); generation++) {
             string arquivo_pareto = execution_folder + "/paretogeracao_" + to_string(generation) + ".txt";
             string arquivo_completo = execution_folder + "/paretogeracao_" + to_string(generation) + "_completo.txt";
@@ -1253,7 +1253,7 @@ int main(int argc, char* argv[]) {
                 continue;
             }
             
-            // Escrever dados do pareto
+            // Write Pareto data
             for(int pareto_set = 0; pareto_set < saved_generations.generations[generation].pareto_set.size(); pareto_set++) {
                 pareto_file << saved_generations.generations[generation].pareto_set[pareto_set].cost << " " 
                        << saved_generations.generations[generation].pareto_set[pareto_set].time << " " 
@@ -1267,7 +1267,7 @@ int main(int argc, char* argv[]) {
                 }
             }
             
-            // Escrever dados de tempo
+            // Write timing data
             data_file << "seed: " << exec_seed << endl;
             data_file << "tempo total em segundos: " << tempoTotal.count() << endl;
             for(int duration = 0; duration < saved_generations.durations.size(); duration++) {
@@ -1283,7 +1283,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Grava resultados finais da última execução no formato original
+    // Write final results of the last execution in the original format
     auto finalArchive = get_pareto_objectives(EP);
     writeResults(finalArchive, dir_path + "/", file_name);
 

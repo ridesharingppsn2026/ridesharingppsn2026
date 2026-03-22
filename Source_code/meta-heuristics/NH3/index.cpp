@@ -42,8 +42,8 @@ protected:
 
 struct Passenger {
     int wk;  // ||Passenger contribution
-    int ok;  // Cidade de origem do passageiro
-    int dk;  // Cidade de destino do passageiro
+    int ok;  // Passenger origin city
+    int dk;  // Passenger destination city
     int tk;  // ||Maximum passenger route time
 };
 
@@ -51,11 +51,11 @@ struct InputData {
     int n;                  // ||Number of cities
     int l;                  // ||Number of passengers
     int vehicle_capacity;   // ||Vehicle capacity
-    vector<vector<int>> c;  // Matriz de custosnObjectives
-    vector<vector<int>> y;  // Matriz de tempo
+    vector<vector<int>> c;  // Cost matrix
+    vector<vector<int>> y;  // Time matrix
     vector<int> b;          // ||Bonus for each city
     vector<int> g;          // ||Bonus collection time for each city
-    vector<Passenger> passengers; // Dados dos passageiros
+    vector<Passenger> passengers; // Passenger data
 };
 
 // ||Structure to store non-dominated points
@@ -68,7 +68,7 @@ struct Solution {
     vector<int> passengers;
 };
 
-// leitura dos dados do 'input.txt'
+// Read input data from file
 InputData readInput(const string &filename) {
     ifstream file(filename);
     InputData data;
@@ -124,7 +124,7 @@ vector<int> extractTour(GRBModel &model, vector<vector<GRBVar>> &x, int n) {
 
     try {
         vector<bool> visited(n, false);
-        int current = 0;  // Cidade inicial
+        int current = 0;  // Initial city
         tour.push_back(current);
         visited[current] = true;
 
@@ -157,7 +157,7 @@ vector<int> extractTour(GRBModel &model, vector<vector<GRBVar>> &x, int n) {
         cerr << "Exceção desconhecida." << endl;
     }
 
-    // Retorna o tour gerado
+    // Return the generated tour
     tour.push_back(0);
     return tour;
 }
@@ -252,7 +252,7 @@ void solveModel(GRBEnv &env, const InputData &data, vector<Solution> &solutions)
         bool stop = false;
         int count_interaction = 0;
 
-        int time_limit_seconds = 7200;  // 2 horas em segundos
+        int time_limit_seconds = 7200;  // 2 hours in seconds
         TimeLimitCallback cb(time_limit_seconds);
         
         auto start_time = std::chrono::steady_clock::now();
@@ -274,12 +274,12 @@ void solveModel(GRBEnv &env, const InputData &data, vector<Solution> &solutions)
             // + ||Decision variables +
             // +----------------------+
             
-            vector<vector<GRBVar>> x(n, vector<GRBVar>(n));                                      // Variável binária que indica se a aresta de cidade i para cidade j é percorrida;
-            vector<GRBVar> u(n);                                                                 // Variável inteira que indica a ordem da cidade i na rota do caixeiro viajante, usada nas restrições MTZ para eliminação de subtours
-            vector<GRBVar> p(n);                                                                 // Variável binária que indica se o bônus na cidade i é coletado
-            // vector<vector<vector<GRBVar>>> h(m, vector<vector<GRBVar>>(n, vector<GRBVar>(n)));   // Variável binária que indica se o k-ésimo passageiro está no veículo na aresta (i, j)
-            // vector<vector<vector<GRBVar>>> psi(n, vector<vector<GRBVar>>(n, vector<GRBVar>(m))); // Variável continua para linearização das restrições envolvendo alpha // by Felipe 28/08/2024
-            // vector<vector<GRBVar>> alpha(n, vector<GRBVar>(n));                                  // Variável contínua que indica o inverso do número de ocupantes do carro na aresta (i, j);
+            vector<vector<GRBVar>> x(n, vector<GRBVar>(n));                                      // Binary variable indicating whether edge (i, j) is traversed
+            vector<GRBVar> u(n);                                                                 // Integer variable indicating city order in the route (MTZ subtour elimination)
+            vector<GRBVar> p(n);                                                                 // Binary variable indicating whether the bonus at city i is collected
+            // vector<vector<vector<GRBVar>>> h(m, vector<vector<GRBVar>>(n, vector<GRBVar>(n)));   // Binary variable indicating whether passenger k is in the vehicle on edge (i, j)
+            // vector<vector<vector<GRBVar>>> psi(n, vector<vector<GRBVar>>(n, vector<GRBVar>(m))); // Continuous variable to linearize constraints involving alpha // by Felipe 28/08/2024
+            // vector<vector<GRBVar>> alpha(n, vector<GRBVar>(n));                                  // Continuous variable indicating inverse vehicle occupancy on edge (i, j)
             vector<vector<GRBVar>> y(solutions.size(), vector<GRBVar>(nObjectives));             // ||Adjust size as needed
 
             for (int i = 0; i < n; i++) {
@@ -315,7 +315,7 @@ void solveModel(GRBEnv &env, const InputData &data, vector<Solution> &solutions)
 
 
             // +-----------------+
-            // + Funcao objetivo +
+            // + Objective function +
             // +-----------------+
 
             GRBLinExpr obj_cost = 0;
@@ -362,8 +362,8 @@ void solveModel(GRBEnv &env, const InputData &data, vector<Solution> &solutions)
             // + ||Problem constraints +
             // +------------------------+
 
-            // ||Constraint 4: Cada cidade, exceto a origem, deve ser visitada exatamente uma vez
-            // ||Constraint 5: Apenas uma saída de cada cidade
+            // ||Constraint 4: Each city, except the origin, must be visited exactly once
+            // ||Constraint 5: Exactly one departure from each city
             GRBLinExpr expr4 = 0;
             GRBLinExpr expr5 = 0;
             for (int i = 0; i < n; i++){
@@ -375,8 +375,8 @@ void solveModel(GRBEnv &env, const InputData &data, vector<Solution> &solutions)
             model.addConstr(expr4 == 1, "visit_" + to_string(s_initial));
             model.addConstr(expr5 == 1, "departure_" + to_string(s_initial));
 
-            // ||Constraint 6: Cada cidade deve ser visitada no máximo uma vez
-            // ||Constraint 7: ||Sum de entradas na cidade j deve ser no máximo 1
+            // ||Constraint 6: Each city must be visited at most once
+            // ||Constraint 7: ||Sum of incoming edges to city j must be at most 1
             for (int j = 0; j < n; j++) {
                 if (j != s_initial) {
                     GRBLinExpr expr6 = 0;
@@ -416,7 +416,7 @@ void solveModel(GRBEnv &env, const InputData &data, vector<Solution> &solutions)
                 }
             }
 
-            // ||Constraint 10: ||Sum de x <= p para todas as cidades j exceto a cidade de origem
+            // ||Constraint 10: ||Sum of x <= p for all cities j except the origin city
             for (int i = 0; i < n; i++){
                 GRBLinExpr expr10 = 0;
                 for (int j = 0; j < n; j++){
@@ -429,15 +429,15 @@ void solveModel(GRBEnv &env, const InputData &data, vector<Solution> &solutions)
 
             model.optimize();
             
-           // Verificar viabilidade e ignorar se o tempo foi excedido
+           // Check feasibility and ignore solution if time limit was exceeded
             if (model.get(GRB_IntAttr_Status) == GRB_OPTIMAL && !cb.stop_optimization) {
                 Solution newSolution = {
                     obj_cost.getValue(),
-                    0, // obj_time.getValue(), // => coletar o time
+                    0, // obj_time.getValue(), // => collect time
                     obj_bonus.getValue(),
                     extractTour(model, x, n),
                     collectBonuses(newSolution.tour, data, model, p),
-                    // collectPassengers(model, h, n, m)  // => coletar os passageiros possiveis
+                    // collectPassengers(model, h, n, m)  // => collect feasible passengers
                 };
 
                 solutions.push_back(newSolution);
@@ -460,7 +460,7 @@ void solveModel(GRBEnv &env, const InputData &data, vector<Solution> &solutions)
     }
 }
 
-// Função para calcular o tempo total da viagem de origem a destino no tour
+// Function to calculate total travel time from origin to destination in the tour
 int calculateTravelTime(const InputData &data, const Solution &solution, int origin, int destination) {
     int travelTime = 0;
     bool inRoute = false;
@@ -502,21 +502,21 @@ double calculateTotalPassengerCost(const InputData &data, const Solution &soluti
         int currentCity = solution.tour[i];
         int nextCity = solution.tour[i + 1];
 
-        // Verifica se passageiros embarcam na cidadpassengerse atual
+        // Check whether passengers board at the current city
         for (int k : passengers) {
             if (currentCity == data.passengers[k].ok) {
                 currentCapacity++;
             }
         }
 
-        // Verifica se passageiros desembarcam na cidade atual
+        // Check whether passengers disembark at the current city
         for (int k : passengers) {
             if (currentCity == data.passengers[k].dk) {
                 currentCapacity--;
             }
         }
 
-        // Adiciona custo atual dividido pela capacidade atual
+        // Add current cost divided by current capacity
         totalPassengerCost += static_cast<double>(data.c[currentCity][nextCity]) / currentCapacity;
 
     }
@@ -534,7 +534,7 @@ void rideMatchingHeuristic(const InputData &data, Solution &solution) {
     bestSolution.passengers = solution.passengers;
     bestSolution.tour = solution.tour;
 
-    // Passo 2: Inicializar a lista de passageiros ordenada
+    // Step 2: Initialize sorted passenger list
     vector<int> sortedPassengers(data.passengers.size());
     iota(sortedPassengers.begin(), sortedPassengers.end(), 0);
     sort(sortedPassengers.begin(), sortedPassengers.end(), [&data](int a, int b) {
@@ -544,7 +544,7 @@ void rideMatchingHeuristic(const InputData &data, Solution &solution) {
     vector<bool> passengerAssigned(data.passengers.size(), false);
     vector<int> onboardPassengers;
 
-    // Passo 3: ||Tour and time verification
+    // Step 3: ||Tour and time verification
     for (int j : sortedPassengers) {
         const Passenger &p = data.passengers[j];
         bool embarkFound = false;
@@ -552,7 +552,7 @@ void rideMatchingHeuristic(const InputData &data, Solution &solution) {
         int embarkIndex = -1;
         int disembarkIndex = -1;
 
-        // Verifica se o passageiro tem seu vértice de embarque e desembarque visitados
+        // Check whether the passenger's boarding and drop-off vertices are visited
         for (int i = 0; i < bestSolution.tour.size(); i++) {
             int city = bestSolution.tour[i];
 
@@ -565,32 +565,32 @@ void rideMatchingHeuristic(const InputData &data, Solution &solution) {
                 disembarkIndex = i;
             }
 
-            // Se ambos vértices de embarque e desembarque são encontrados, interrompe a busca
+            // If both boarding and drop-off vertices are found, stop searching
             if (embarkFound && disembarkFound) {
                 break;
             }
         }
 
-        // Se ambos vértices de embarque e desembarque são visitados e embarque ocorre antes do desembarque
+        // If both vertices are visited and boarding occurs before drop-off
         if (embarkFound && disembarkFound && embarkIndex < disembarkIndex) {
             int travelTime = calculateTravelTime(data, bestSolution, p.ok, p.dk);
 
             if (travelTime <= p.tk) {
-                // Passageiro potencialmente viável, adicionar para verificação de custo
+                // Potentially feasible passenger, add for cost verification
                 bestSolution.passengers.push_back(j);
             }
         }
     }
 
 
-    // Passo 4: ||Cost check and vehicle capacity adjustment
+    // Step 4: ||Cost check and vehicle capacity adjustment
     vector<int> finalPassengers;
     int lotacao = 0;
 
     for (int i = 0; i < bestSolution.tour.size(); i++) {
         int currentCity = bestSolution.tour[i];
 
-        // verificar desembarque
+        // Check drop-off
         for (auto it = finalPassengers.begin(); it != finalPassengers.end(); it++) {
             const Passenger &p = data.passengers[*it];
             if(currentCity == p.dk) {
@@ -598,12 +598,12 @@ void rideMatchingHeuristic(const InputData &data, Solution &solution) {
             }
         }
 
-        // verificar o embarque
+        // Check boarding
         for (int j : bestSolution.passengers) {
             const Passenger &p = data.passengers[j];
 
             if (currentCity == p.ok && lotacao < data.vehicle_capacity) {
-                // calcular o custo do trajeto do passageiro
+                // Compute passenger trip cost
                 int travelCost = 0;
                 int embarkIndex = i;
                 int disembarkIndex = -1;
@@ -620,7 +620,7 @@ void rideMatchingHeuristic(const InputData &data, Solution &solution) {
                         travelCost += data.c[bestSolution.tour[k]][bestSolution.tour[k+1]];
                     }
 
-                    //dividir o custo pela lotacao atual (motorista + passageiros)
+                    // Divide cost by current occupancy (driver + passengers)
                     double costPerPassenger = static_cast<double>(travelCost) / (lotacao + 1);
 
                     if (costPerPassenger <= p.wk) {
@@ -639,7 +639,7 @@ void rideMatchingHeuristic(const InputData &data, Solution &solution) {
     solution = bestSolution;
 }
 
-// Função para calcular o tempo total do percurso do tour, incluindo o tempo de coleta de bônus
+// Function to calculate total tour time, including bonus collection time
 void calculateTotalTime(const InputData &data, Solution &solution) {
     double totalTime = 0;
     Solution bestSolution = solution;
@@ -649,16 +649,16 @@ void calculateTotalTime(const InputData &data, Solution &solution) {
         totalTime += data.g[bonus];
     };
 
-    // Percorre o tour para somar o tempo de viagem e o tempo de coleta de bônus
+    // Traverse the tour to sum travel time and bonus collection time
     for (size_t i = 0; i < bestSolution.tour.size() - 1; ++i) {
         int currentCity = bestSolution.tour[i];
         int nextCity = bestSolution.tour[i + 1];
 
-        // Adiciona o tempo de viagem entre as cidades consecutivas no tour
+        // Add travel time between consecutive cities in the tour
         totalTime += data.y[currentCity][nextCity];
     }
 
-    // Adiciona o tempo de retorno ao ponto inicial, se necessário
+    // Add return time to the initial city, if needed
     if (!bestSolution.tour.empty()) {
         int lastCity = bestSolution.tour.back();
         int startCity = bestSolution.tour.front();
@@ -670,8 +670,8 @@ void calculateTotalTime(const InputData &data, Solution &solution) {
 }
 
 bool isDominated(const Solution &sol1, const Solution &sol2) {
-    // sol1 é dominado por sol2 se e somente se sol2 é melhor em pelo menos um objetivo
-    // e não é pior em nenhum outro objetivo.
+    // sol1 is dominated by sol2 iff sol2 is better in at least one objective
+    // and no worse in any other objective.
     bool isBetterInAtLeastOne = false;
     
     if (sol2.obj_cost <= sol1.obj_cost && sol2.obj_time <= sol1.obj_time && sol2.obj_bonus >= sol1.obj_bonus) {
@@ -761,7 +761,7 @@ int main() {
                 file_name_output = instance + ".2h.txt";
             }
 
-            // Escrever resultados em solutions.txt
+            // Write results to solutions.txt
             ofstream outFile(path_output + file_name_output);
             if (outFile.is_open()) {
                 outFile << "Fo(custo)\tFo(tempo)\tFo(bônus)\n";

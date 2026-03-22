@@ -91,7 +91,7 @@ Solution first_improvement_next_solution(const LandscapeElement &element, const 
 
   for(int i = 0; i < (*neighborhood).size(); i++){
     if(dominates((*neighborhood)[i], best_solution)){
-      return (*neighborhood)[i];  // Retorna imediatamente a primeira que domina
+      return (*neighborhood)[i];  // Return immediately with the first one that dominates
     }
   }
 
@@ -99,13 +99,13 @@ Solution first_improvement_next_solution(const LandscapeElement &element, const 
 }
 
 // ||Non-Dominated Set: randomly select among non-dominated solutions
-// ||ORIGINAL IMPLEMENTATION (||ISSUE: compara vizinhos entre si + só aceita se dominar) - ||COMMENTED
+// ||ORIGINAL IMPLEMENTATION (||ISSUE: compares neighbors among themselves + only accepts if it dominates) - ||COMMENTED
 /*
 Solution non_dominated_set_next_solution(const LandscapeElement &element, const vector<Solution>* neighborhood){
   Solution best_solution = element.current_solution;
   vector<Solution> non_dominated_solutions;
   
-  // Coleta todas as soluções não dominadas ENTRE SI (||ISSUE)
+  // Collect all solutions that are non-dominated among themselves (||ISSUE)
   for(int i = 0; i < (*neighborhood).size(); i++){
     bool is_dominated = false;
     for(int j = 0; j < (*neighborhood).size(); j++){
@@ -119,12 +119,12 @@ Solution non_dominated_set_next_solution(const LandscapeElement &element, const 
     }
   }
   
-  // Se há soluções não dominadas, seleciona uma aleatoriamente
+  // If there are non-dominated solutions, select one at random
   if(!non_dominated_solutions.empty()){
     int random_index = rand() % non_dominated_solutions.size();
     Solution selected = non_dominated_solutions[random_index];
     
-    // Se a selecionada domina a atual, retorna ela; senão, retorna a atual (||ISSUE)
+    // If the selected one dominates the current one, return it; otherwise, return current (||ISSUE)
     if(dominates(selected, best_solution)){
       return selected;
     }
@@ -134,20 +134,20 @@ Solution non_dominated_set_next_solution(const LandscapeElement &element, const 
 }
 */
 
-// ||PREVIOUS IMPLEMENTATION (apenas compara com atual) - ||COMMENTED
+// ||PREVIOUS IMPLEMENTATION (only compares against current) - ||COMMENTED
 /*
 Solution non_dominated_set_next_solution(const LandscapeElement &element, const vector<Solution>* neighborhood){
   Solution best_solution = element.current_solution;
   vector<Solution> non_dominated_solutions;
   
-  // Coleta soluções que NÃO são dominadas pela solução atual
+  // Collect solutions that are NOT dominated by the current solution
   for(int i = 0; i < (*neighborhood).size(); i++){
-    if(!dominates(best_solution, (*neighborhood)[i])){ // Se atual NÃO domina vizinho
+    if(!dominates(best_solution, (*neighborhood)[i])){ // If current does NOT dominate neighbor
       non_dominated_solutions.push_back((*neighborhood)[i]);
     }
   }
   
-  // Seleciona aleatoriamente entre as não dominadas pela atual
+  // Select randomly among those not dominated by current
   if(!non_dominated_solutions.empty()){
     int random_index = rand() % non_dominated_solutions.size();
     return non_dominated_solutions[random_index];
@@ -170,22 +170,22 @@ Solution non_dominated_set_next_solution(const LandscapeElement &element, const 
   for(int i = 0; i < (*neighborhood).size(); i++){
     bool is_dominated = false;
     
-    // Verifica se vizinho i é dominado por qualquer solução (incluindo atual)
+    // Check whether neighbor i is dominated by any solution (including current)
     for(int j = 0; j < all_solutions.size(); j++){
-      // Compara vizinho i com todas as outras soluções
+      // Compare neighbor i with all other solutions
       if(dominates(all_solutions[j], (*neighborhood)[i])){
         is_dominated = true;
         break;
       }
     }
     
-    // Se não é dominado por nenhuma, faz parte do Pareto Front
+    // If it is not dominated by any, it belongs to the Pareto Front
     if(!is_dominated){
       non_dominated_solutions.push_back((*neighborhood)[i]);
     }
   }
   
-  // Seleciona aleatoriamente do Pareto Front
+  // Select randomly from the Pareto Front
   if(!non_dominated_solutions.empty()){
     int random_index = rand() % non_dominated_solutions.size();
     return non_dominated_solutions[random_index];

@@ -234,7 +234,7 @@ void create_test_archives(Instance instance, string algorithm_name, string folde
     for(int pareto_set = 0; pareto_set< saved_generations.generations[generation].pareto_set.size() ; pareto_set++){
       arquivo<<saved_generations.generations[generation].pareto_set[pareto_set].cost<<" "<< saved_generations.generations[generation].pareto_set[pareto_set].time<<" " << saved_generations.generations[generation].pareto_set[pareto_set].total_bonus;
       fill_complete_archive(instance, arquivo_completo, saved_generations, generation, pareto_set);
-      //adicionar rota, cities, passengers, custos, tempos, etc
+      // add route, cities, passengers, costs, times, etc.
       if(pareto_set<saved_generations.generations[generation].pareto_set.size()-1){
         arquivo<<endl;
         arquivo_completo<<endl;
