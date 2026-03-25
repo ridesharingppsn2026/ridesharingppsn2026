@@ -1,12 +1,11 @@
-# Title
+## Title
 
 This repository contains the implementation, benchmark instances, and experimental data for the paper:  
 
-> **"Landscape-Aware Meta-Learning for Multi-objective Ridesharing Optimization"**  
+> **"Static vs Landscape Meta-Feature in Multi-Objective Ridesharing Optimization "**  
 
 ## 📄 Abstract  
-Ridesharing optimization has attracted increasing attention
-due to its potential to improve urban mobility through shared transportation. Recent ridesharing models incorporate reward collection, enhancing practical applicability and motivating multi-objective formulations. Although multi-objective evolutionary metaheuristics are effective, their performance varies significantly across instances due to underlying landscape heterogeneity. While landscape-aware meta-learning has shown strong results in single-objective settings, its application to real-world multi-objective ridesharing remains largely unexplored. This paper proposes a landscape-aware meta-learning approach to predict the performance of multi-objective metaheuristics for a ridesharing problem with rewards. The proposed approach extracts Pareto-based landscape metafeatures using neighborhood-based techniques and trains a multi-output Random Forest model to estimate algorithm performance under different quality indicators. Experiments examine the performance of metaheuristics, the influence of sampling configurations on meta-feature values, and the effectiveness of the meta-learning model for algorithm selection. The results show that the proposed approach consistently outperforms the baseline that applies a single algorithm uniformly across all instances.
+Ridesharing optimization has attracted increasing attention due to its potential to improve urban mobility through shared transportation. Recent ridesharing models incorporate reward collection, motivating multi-objective formulations. Although multi-objective evolutionary metaheuristics are effective, their performance varies significantly across instances’ characteristics. While meta-learning has shown strong results for algorithm selection, the role of static and landscape metafeatures in multi-objective ridesharing remains underexplored. This paper investigates the impact of different meta-feature groups on algorithm selection in a ridesharing problem with rewards, explicitly comparing static-only, landscape-only, and combined meta-features. We construct 122 datasets using different sampling configurations from 252 instances. A multi-output Random Forest model is trained to predict metaheuristic performance under two quality indicators. Experiments examine the performance of metaheuristics, the influence of sampling configurations on meta-feature values, and meta-learning performance for each meta-feature group. Results show that landscape-only features yield limited predictive performance, while static features are more informative, and their combination leads to improved accuracy and consistently outperforms a single-algorithm baseline.
 
 ## 📂 Repository Structure  
 ```
