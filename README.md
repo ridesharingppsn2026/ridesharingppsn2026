@@ -65,8 +65,5 @@ due to its potential to improve urban mobility through shared transportation. Re
 ## 📧 Contact & Contribution
 Questions or contributions: please open an issue or submit a pull request. Once the associated article is published, please cite it when using these data or code.
 
-## 📜 License
-This project is licensed under the License.
-
 ## 📧 Contact
 For questions, contact the lead author: juvenal.bruno@ufba.br.
