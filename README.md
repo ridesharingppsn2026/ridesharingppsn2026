@@ -1,5 +1,3 @@
-## Title
-
 This repository contains the implementation, benchmark instances, and experimental data for the paper:  
 
 > **"Static vs Landscape Meta-Feature in Multi-Objective Ridesharing Optimization "**  
